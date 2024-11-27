@@ -27,12 +27,34 @@ DLL_TARGET := $(DLL_FILES:$(DLL)/%.c=$(BIN)/%.dll)
 
 all: $(TARGET)
 
+clean:
+	@echo ---Cleaning up orphaned object files---
+	@for obj in $(OBJ_FILES); do \
+		if [ ! -f "$(SRC)/$$(basename $$obj .o).c" ]; then \
+			echo "Deleting orphaned object file $$obj"; \
+			rm -f $$obj; \
+		fi \
+	done
+	@echo ---Cleaning up orphaned DLL files---
+	@for dll in $(DLL_TARGET); do \
+		if [ ! -f "$(DLL)/$$(basename $$dll .dll).c" ]; then \
+			echo "Deleting orphaned DLL file $$dll"; \
+			rm -f $$dll; \
+		fi \
+	done
+	@echo ---Cleaning up target executable---
+	@rm -f $(TARGET)
+
 $(TARGET): $(DLL_TARGET) $(OBJ_FILES)
-	$(CC) $(OBJ_FILES) -o $@ $(CLFAGS) $(wildcard $(LINK_DIR)/*.a)
+	@echo ---Compiling $(OBJ_FILES)---
+	@$(CC) $(OBJ_FILES) -o $@ $(CLFAGS) $(wildcard $(LINK_DIR)/*.a)
 
+#For deleting changed object files and compiling new ones
 $(OBJ)/%.o: $(SRC)/%.c
-	$(CC) $(CLFAGS) -c $< -o $@
+	@echo ---Compiling $<---
+	@$(CC) $(CLFAGS) -c $< -o $@
 
-#For compiling dynamic code into linked libraries
+#For deleting the changed .dll's and compiling dynamic code into linked libraries
 $(BIN)/%.dll: $(DLL)/%.c
-	$(CC) -shared -o $@ $< "-Wl,--out-implib,$(LINK_DIR)/lib$*.a"
+	@echo ---Compiling $<---
+	@$(CC) -shared -o $@ $< "-Wl,--out-implib,$(LINK_DIR)/lib$*.a"
