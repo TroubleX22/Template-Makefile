@@ -1,3 +1,9 @@
-bin/*
+#Ignore binaries
 obj/*
 include/lib/*
+bin/*
+
+#Keep the directories
+!obj/
+!include/lib/
+!bin/
