@@ -4,6 +4,7 @@
 !bin/
 
 #Ignore binaries
-obj/*
-include/lib/*
-bin/*
+obj/*.o
+include/lib/*.a
+bin/*.exe
+bin/*.dll
