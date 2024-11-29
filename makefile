@@ -1,3 +1,5 @@
+SHELL = cmd
+
 #Macros for compiler information
 CC := gcc
 INCLUDE := include
@@ -25,25 +27,7 @@ LINKARCH := $(wildcard $(LINK_DIR)/*.a)
 
 DLL_TARGET := $(DLL_FILES:$(DLL)/%.c=$(BIN)/%.dll)
 
-all: $(TARGET)
-
-clean:
-	@echo ---Cleaning up orphaned object files---
-	@for obj in $(OBJ_FILES); do \
-		if [ ! -f "$(SRC)/$$(basename $$obj .o).c" ]; then \
-			echo "Deleting orphaned object file $$obj"; \
-			rm -f $$obj; \
-		fi \
-	done
-	@echo ---Cleaning up orphaned DLL files---
-	@for dll in $(DLL_TARGET); do \
-		if [ ! -f "$(DLL)/$$(basename $$dll .dll).c" ]; then \
-			echo "Deleting orphaned DLL file $$dll"; \
-			rm -f $$dll; \
-		fi \
-	done
-	@echo ---Cleaning up target executable---
-	@rm -f $(TARGET)
+all: $(TARGET) clean_excess
 
 $(TARGET): $(DLL_TARGET) $(OBJ_FILES)
 	@echo ---Compiling $(OBJ_FILES)---
@@ -58,3 +42,32 @@ $(OBJ)/%.o: $(SRC)/%.c
 $(BIN)/%.dll: $(DLL)/%.c
 	@echo ---Compiling $<---
 	@$(CC) -shared -o $@ $< "-Wl,--out-implib,$(LINK_DIR)/lib$*.a"
+
+clean_excess:
+	@echo ---Deleing excess .dll files---
+
+	$(foreach wrd,$(wildcard $(BIN)/*.dll), \
+	$(shell \
+		if not exist $(patsubst $(BIN)/%.dll,$(DLL)/%.c,$(wrd)) \
+			( \
+				del $(subst /,\,$(wrd)) \
+			) \
+		) \
+	)
+	
+	$(foreach wrd,$(wildcard $(LINK_DIR)/lib*.a), echo \
+	$(shell \
+		if not exist $(patsubst $(LINK_DIR)/lib*.a,$(DLL)/%.c,$(wrd)) \
+			( \
+				echo $(subst /,\,$(wrd)) \
+			) \
+		) \
+	)
+
+clean:
+	@echo ---Cleaning all objects and binaries---
+	@if NOT "$(wildcard $(OBJ)/*.o)" == "" ( del $(subst /,\,$(wildcard $(OBJ)/*.o)) )
+
+	@if NOT "$(wildcard $(BIN)/*.exe)" == "" (@del $(subst /,\,$(wildcard $(BIN)/*.exe)))
+	
+	@if NOT "$(wildcard $(BIN)/*.dll)" == "" (@del  $(subst /,\,$(wildcard $(BIN)/*.dll)))
