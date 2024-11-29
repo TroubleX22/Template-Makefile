@@ -23,43 +23,69 @@ DLL := $(SRC)/dll
 DLL_FILES := $(wildcard $(DLL)/*.c)
 
 LINK_DIR := $(INCLUDE)/lib
-LINKARCH := $(wildcard $(LINK_DIR)/*.a)
+LINKARCH := $(wildcard $(LINK_DIR)/*.lib)
 
 DLL_TARGET := $(DLL_FILES:$(DLL)/%.c=$(BIN)/%.dll)
 
-all: $(TARGET) clean_excess
+#Macros for external libraries
+
+LIBS_DIR := libs
+LIB_FILES := $(shell dir /s /b $(LIBS_DIR)\*.lib 2>nul)
+LIB_HEADERS := $(foreach wrd,$(shell dir /s /b $(LIBS_DIR)\*.h 2>nul),-l(wrd))
+
+#Main macros definition end
+
+all: $(TARGET) clean_excess $(wildcard $(SRC)/*.c) $(wildcard $(DLL)/*.c)
 
 $(TARGET): $(DLL_TARGET) $(OBJ_FILES)
 	@echo ---Compiling $(OBJ_FILES)---
-	@$(CC) $(OBJ_FILES) -o $@ $(CLFAGS) $(wildcard $(LINK_DIR)/*.a)
+	@$(CC) $(OBJ_FILES) -o $@ $(CLFAGS) $(wildcard $(LINK_DIR)/*.lib) $(LIB_FILES)
 
 #For deleting changed object files and compiling new ones
 $(OBJ)/%.o: $(SRC)/%.c
 	@echo ---Compiling $<---
 	@$(CC) $(CLFAGS) -c $< -o $@
 
-#For deleting the changed .dll's and compiling dynamic code into linked libraries
 $(BIN)/%.dll: $(DLL)/%.c
 	@echo ---Compiling $<---
-	@$(CC) -shared -o $@ $< "-Wl,--out-implib,$(LINK_DIR)/lib$*.a"
+	@$(CC) -shared -o $@ $< "-Wl,--out-implib,$(LINK_DIR)/lib$*.lib"
 
-clean_excess:
-	@echo ---Deleing excess .dll files---
-
-	$(foreach wrd,$(wildcard $(BIN)/*.dll), \
+$(SRC)/%.c:
+	echo WORKING!!
+	$(foreach wrd,$(wildcard $(OBJ)/*.o), \
 	$(shell \
-		if not exist $(patsubst $(BIN)/%.dll,$(DLL)/%.c,$(wrd)) \
+		if not exist $(patsubst $(OBJ)/%.o,$(SRC)/%.c,$(wrd)) \
 			( \
 				del $(subst /,\,$(wrd)) \
 			) \
 		) \
 	)
-	
-	$(foreach wrd,$(wildcard $(LINK_DIR)/lib*.a), echo \
+
+#For deleting the changed .dll's and compiling dynamic code into linked libraries
+clean_excess: $(wildcard $(SRC)/*.c) $(wildcard $(DLL)/*.c)
+	$(foreach wrd,$(wildcard $(BIN)/*.dll), \
 	$(shell \
-		if not exist $(patsubst $(LINK_DIR)/lib*.a,$(DLL)/%.c,$(wrd)) \
+		if not exist $(patsubst $(BIN)/%.dll,$(DLL)/%.c,$(wrd)) \
 			( \
-				echo $(subst /,\,$(wrd)) \
+				del $(subst /,\,$(wrd) && echo ---Deleting $(wrd)---) \
+			) \
+		) \
+	)
+	
+	$(foreach wrd,$(wildcard $(LINK_DIR)/lib*.lib), \
+	$(shell \
+		if not exist $(patsubst $(LINK_DIR)/lib%.lib,$(DLL)/%.c,$(wrd)) \
+			( \
+				del $(subst /,\,$(wrd) && echo ---Deleting $(wrd)---) \
+			) \
+		) \
+	)
+
+	$(foreach wrd,$(wildcard $(OBJ)/*.o), \
+	$(shell \
+		if not exist $(patsubst $(OBJ)/%.o,$(SRC)/%.c,$(wrd)) \
+			( \
+				del $(subst /,\,$(wrd) && echo ---Deleting $(wrd)---) \
 			) \
 		) \
 	)
