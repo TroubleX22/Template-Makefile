@@ -5,6 +5,7 @@
 
 # Object files
 *.o
+*.opp
 *.ko
 *.obj
 *.elf

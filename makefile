@@ -1,50 +1,84 @@
 # Barebones makefile
 
 # Compiler stuff
-CC := gcc
+CC = gcc
+CPPC = g++
+FINAL_COMP := $(CPPC)
+
 FLAGS := -Wall
-LIBRARIES := -lxcb
+LIBRARIES := 
 
-SHAR_SRC_FLAGS := -fPIC
-SHAR_OBJ_FLAGS := -shared
+SHAR_FLAGS := -fPIC -shared
 
-INCLUDES := includes
+INCLUDES = includes
 
 # Binary Name
-binName := program.bin
+binName = program.bin
 
 # Directories
-SRC := src
-OBJ := obj
-BIN := bin
+SRC = src
+OBJ = obj
+BIN = bin
 
 SHAR_SRC_DIR := shared_src
-SHAR_OBJ_DIR := shared_obj
 
 # Source and object files
 SRC_FILES := $(wildcard $(SRC)/*.c)
-OBJ_FILES := $(patsubst $(SRC)/%.c,$(OBJ)/%.o,$(SRC_FILES))
+
+CPP_SRC_FILES := $(wildcard $(SRC)/*.cpp)
+
+OBJ_FILES := $(strip $(patsubst $(SRC)/%.c,$(OBJ)/%.o,$(SRC_FILES)) $(patsubst $(SRC)/%.cpp,$(OBJ)/%.opp, $(CPP_SRC_FILES)))
+# Note: .opp is a file extension used to identify C++ files differently from C object files for propper linking
+
+# For already compiled libraries
+LIB_DIR = libraries
+LIBS := $(wildcard $(LIB_DIR)/*/)
+
+LIB_FILES := $(foreach folder,$(LIBS),$(wildcard $(file)/*.so) $(wildcard))
+LIB_LINKS
 
 # Shared Object source files
 SHAR_SRC := $(wildcard $(SHAR_SRC_DIR)/*.c)
-SHAR_OBJ := $(patsubst $(SHAR_SRC_DIR)/%.c,$(SHAR_OBJ_DIR)/%.o,$(SHAR_SRC))
-SHAR_BIN := $(patsubst $(SHAR_SRC_DIR)/%.c,-l%,$(SHAR_SRC))
 
-start: $(SHAR_OBJ) $(OBJ_FILES)
+SHAR_CPP_SRC := $(wildcard $(SHAR_SRC_DIR)/*.cpp)
+
+SHAR_BIN_LINK := $(strip $(patsubst $(SHAR_SRC_DIR)/%.c,-l%,$(SHAR_SRC)) $(patsubst $(SHAR_SRC_DIR)/%.cpp,-l%, $(SHAR_CPP_SRC)))
+
+SHAR_BIN := $(strip $(patsubst $(SHAR_SRC_DIR)/%.c,$(BIN)/%.so,$(SHAR_SRC)) $(patsubst $(SHAR_SRC_DIR)/%.cpp,$(BIN)/%.sopp,$(SHAR_CPP_SRC)))
+
+
+
+ifeq ($(strip $(SHAR_CPP_SRC) $(CPP_SRC_FILES)),)
+FINAL_COMP = $(CC)
+endif
+
+
+
+
+# The first rule to compile everything
+start: $(SHAR_BIN) $(OBJ_FILES)
 	@echo ---Compiling final Binary---
-	@$(CC) $(filter $(OBJ)/%, $^) -o $(BIN)/$(binName) -L$(BIN)/ $(SHAR_BIN)
+	@$(FINAL_COMP) $(filter $(OBJ)/%, $^) -o $(BIN)/$(binName) -L$(BIN)/ $(SHAR_BIN_LINK)
+
 
 # Compile normal binaries
 $(OBJ)/%.o: $(SRC)/%.c
-	@echo ---Compiling $^ as regular object file---
-	@$(CC) -I$(INCLUDES) $(FLAGS) $(LIBRARIES) -c $^ -o $@
+	@echo ---Compiling $^ as object file---
+	@$(CC) -I$(INCLUDES) -I$(SHAR_SRC_DIR) $(FLAGS) $(LIBRARIES) -c $^ -o $@
+
+$(OBJ)/%.opp: $(SRC)/%.cpp
+	@echo ---Compiling $^ as object file---
+	@$(CPPC) -I$(INCLUDES) -I$(SHAR_SRC_DIR) $(FLAGS) $(LIBRARIES) -c $^ -o $@
 
 # Compile Shared Objects
 # Inspired by ChatGPT
-$(SHAR_OBJ_DIR)/%.o: $(SHAR_SRC_DIR)/%.c
+$(BIN)/%.so: $(SHAR_SRC_DIR)/%.c
 	@echo ---Compileing $^ as shared object file---
-	@$(CC) $(SHAR_SRC_FLAGS) -c $^ -o $@
-	@$(CC) -I$(INCLUDES) $(SHAR_OBJ_FLAGS) $(FLAGS) $(LIBRARIES) $@ -o $(patsubst $(SHAR_OBJ_DIR)/%.o,$(BIN)/lib%.so,$@)
+	@$(CC) -I$(INCLUDES) -I$(SRC) $(SHAR_FLAGS) $(FLAGS) $(LIBRARIES) $^ -o $(patsubst $(BIN)/%.so,$(BIN)/lib%.so,$@)
+
+$(BIN)/%.sopp: $(SHAR_SRC_DIR)/%.cpp
+	@echo ---Compileing $^ as shared object file---
+	@$(CPPC) -I$(INCLUDES) -I$(SRC) $(SHAR_FLAGS) $(FLAGS) $(LIBRARIES) $^ -o $(patsubst $(BIN)/%.sopp,$(BIN)/lib%.so,$@)
 
 clean:
 	@echo ---Cleaning---
@@ -61,6 +95,7 @@ innit:
 	@mkdir -p $(BIN)
 	
 	@mkdir -p $(SHAR_SRC_DIR)
-	@mkdir -p $(SHAR_OBJ_DIR)
 	
 	@mkdir -p $(INCLUDES)
+
+	@mkdir -p $(LIB_DIR)
