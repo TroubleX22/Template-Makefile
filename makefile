@@ -5,7 +5,7 @@ CC = gcc
 CPPC = g++
 FINAL_COMP := $(CPPC)
 
-FLAGS := -Wall
+FLAGS := -Wall -lstdc++
 LIBRARIES := 
 
 SHAR_FLAGS := -fPIC -shared
