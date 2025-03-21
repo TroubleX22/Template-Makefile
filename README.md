@@ -24,6 +24,13 @@ libraries/
  ```
 
 ### Modifying the MAKEFILE
-Here are the recomended ways to modify the MAKEFILE:\
-+ You can change the compiler(s) by changing the CC or CPPC macro. CC stands for C compiler, and CPPC stands for C Plus Plus Compiler.
-+ 
+Here are the recomended ways to modify the MAKEFILE:
++ You can change the compiler(s) by changing the CC or CPPC macro. CC stands for C compiler, and CPPC stands for C Plus Plus Compiler. Keep in mind that you might have to change the arguments for the compiler as well.
++ To add libraries or other compiler commands, change the FLAGS and LIBRARIES macros. Example: `FLAGS := -Wall -E` and `LIBRARIES := -lxcb -lncurses`.
++ Directory names.
+
+### Cleaning
+If you run the `make clean` rule, it will clear the obj/ directory of object files (.o and [.opp](#what-is-opp-file-extension)) and all files in bin/ .
+
+### What is .OPP and .BIN file extension
+**.OPP** is It is a file extension created to help the makefile know between C and C++ objects. I believe it is obsolete now, but I feel no desire to remove it.
