@@ -40,7 +40,7 @@ RELOC_LIB_OBJ_FILES := $(foreach folder,$(LIBS),$(patsubst $(folder)/%.o,$(OBJ)/
 
 LIB_LINK := $(foreach folder, $(LIBS), \
 	$(foreach file, $(wildcard $(folder)*.so), \
-	 \
+	$(patsubst $(folder)lib%.so,  -l%, $(file)) \
 	) \
 )
 
@@ -66,7 +66,10 @@ endif
 start: $(SHAR_BIN) $(OBJ_FILES)
 	@echo ---Compiling final Binary---
 	
-	@$(foreach folder,$(LIBS), $(foreach file,$(wildcard $(folder)*.o), cp $(file) $(patsubst $(folder)%.o,$(OBJ)/%.o,$(file));))
+# Coppy stuff
+	@$(foreach folder,$(LIBS), $(foreach file, $(wildcard $(folder)*.o), cp $(file) $(patsubst $(folder)%.o,$(OBJ)/%.o,$(file));))
+	@$(foreach folder,$(LIBS), $(foreach file, $(wildcard $(folder)*.opp), cp $(file) $(patsubst $(folder)%.opp,$(OBJ)/%.opp,$(file));))
+	@$(foreach folder,$(LIBS), $(foreach file, $(wildcard $(folder)*.so), cp $(file) $(patsubst $(folder)%.so,$(BIN)/%.so,$(file));))
 
 	@$(FINAL_COMP) $(filter $(OBJ)/%, $^) $(RELOC_LIB_OBJ_FILES) -o $(BIN)/$(binName) -L$(BIN)/ $(SHAR_BIN_LINK) $(LIB_LINK)
 
