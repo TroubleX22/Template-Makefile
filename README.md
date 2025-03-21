@@ -41,5 +41,5 @@ If you run the `make clean` rule, it will clear the obj/ directory of object fil
 ### What is .OPP file extension
 **.OPP** is It is a file extension created to help the makefile know between C and C++ objects. I believe it is obsolete now, but I feel no desire to remove it, so it is staying.
 
-### Liscense?
+### Liscense?s
 Feel free to modify and take complete credit. Do not change the original repository. I recomend if you want to make a new public version of this makefile, just fork it.
