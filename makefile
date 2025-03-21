@@ -34,8 +34,15 @@ OBJ_FILES := $(strip $(patsubst $(SRC)/%.c,$(OBJ)/%.o,$(SRC_FILES)) $(patsubst $
 LIB_DIR = libraries
 LIBS := $(wildcard $(LIB_DIR)/*/)
 
-LIB_FILES := $(foreach folder,$(LIBS),$(wildcard $(file)/*.so) $(wildcard))
-LIB_LINKS
+LIB_SHAR_FILES := $(foreach folder,$(LIBS),$(wildcard $(folder)*.so))
+LIB_OBJ_FILES := $(foreach folder,$(LIBS),$(wildcard $(folder)*.o)) $(foreach folder,$(LIBS),$(wildcard $(file)*.opp))
+RELOC_LIB_OBJ_FILES := $(foreach folder,$(LIBS),$(patsubst $(folder)/%.o,$(OBJ)/%.o,$(wildcard $(folder)/*.o))) $(foreach folder,$(LIBS),$(patsubst $(folder)/%.opp,$(OBJ)/%.opp,$(wildcard $(file)/*.opp)))
+
+LIB_LINK := $(foreach folder, $(LIBS), \
+	$(foreach file, $(wildcard $(folder)*.so), \
+	 \
+	) \
+)
 
 # Shared Object source files
 SHAR_SRC := $(wildcard $(SHAR_SRC_DIR)/*.c)
@@ -58,7 +65,10 @@ endif
 # The first rule to compile everything
 start: $(SHAR_BIN) $(OBJ_FILES)
 	@echo ---Compiling final Binary---
-	@$(FINAL_COMP) $(filter $(OBJ)/%, $^) -o $(BIN)/$(binName) -L$(BIN)/ $(SHAR_BIN_LINK)
+	
+	@$(foreach folder,$(LIBS), $(foreach file,$(wildcard $(folder)*.o), cp $(file) $(patsubst $(folder)%.o,$(OBJ)/%.o,$(file));))
+
+	@$(FINAL_COMP) $(filter $(OBJ)/%, $^) $(RELOC_LIB_OBJ_FILES) -o $(BIN)/$(binName) -L$(BIN)/ $(SHAR_BIN_LINK) $(LIB_LINK)
 
 
 # Compile normal binaries
@@ -83,7 +93,7 @@ $(BIN)/%.sopp: $(SHAR_SRC_DIR)/%.cpp
 clean:
 	@echo ---Cleaning---
 	@rm ./obj/*.o -rf
-	@rm ./shared_obj/*.o -rf
+	@rm ./obj/*.opp -rf
 	@rm ./bin/* -rf
 
 # Create the standard directories
