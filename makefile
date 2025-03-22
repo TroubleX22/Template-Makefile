@@ -100,7 +100,7 @@ clean:
 	@rm ./bin/* -rf
 
 # Create the standard directories
-innit:
+init:
 	@echo ---Creating standard directories---
 	
 	@mkdir -p $(SRC)
@@ -112,3 +112,4 @@ innit:
 	@mkdir -p $(INCLUDES)
 
 	@mkdir -p $(LIB_DIR)
+

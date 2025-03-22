@@ -5,7 +5,7 @@ This is a basic template for a MAKEFILE that I created to make it as simple as p
 ### Directories and their meanings
 This MAKEFILE relies on a specific directory structure to work. I do not recomend changing it except at your own risk.
 
-Run `make innit` to generate the folder structure. This will create the following folders:
+Run `make init` to generate the folder structure. This will create the following folders:
 + src/ -> Where your standard .c and .cpp files are stored
 + obj/ -> Where the compiled files from src/ and objects from libraries/ are stored.
 + bin/ -> Where the finished compiled binaries and shared objects are stored.
@@ -24,7 +24,7 @@ libraries/
  ```
 
 ### Running the program
-While you can easily run the program with some commands, I wanted to streamline it without having to set shared object locations and anything else. So there is a file called **innit.sh**. You run it with either `source ./innit.sh` or `. ./innit.sh` which will source it so that you can use the function it generates. When ran, you should get a box that says how to use it.
+While you can easily run the program with some commands, I wanted to streamline it without having to set shared object locations and anything else. So there is a file called **init.sh**. You run it with either `source ./init.sh` or `. ./init.sh` which will source it so that you can use the function it generates. When ran, you should get a box that says how to use it.
 
 If done correctly, you should now be able to run the program by typing `run` into your terminal. You can run with command line arguments by adding them to the end, like this `run Hello! -a --help`.
 
@@ -32,7 +32,7 @@ If done correctly, you should now be able to run the program by typing `run` int
 Here are the recomended ways to modify the MAKEFILE:
 + You can change the compiler(s) by changing the CC or CPPC macro. CC stands for C compiler, and CPPC stands for C Plus Plus Compiler. Keep in mind that you might have to change the arguments for the compiler as well.
 + To add libraries or other compiler commands, change the FLAGS and LIBRARIES macros. Example: `FLAGS := -Wall -E` and `LIBRARIES := -lxcb -lncurses`.
-+ Main binary name (Will have to also update [innit.sh](#running-the-program))
++ Main binary name (Will have to also update [init.sh](#running-the-program))
 + Directory names.
 
 ### Cleaning
