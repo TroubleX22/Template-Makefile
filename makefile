@@ -49,9 +49,9 @@ SHAR_SRC := $(wildcard $(SHAR_SRC_DIR)/*.c)
 
 SHAR_CPP_SRC := $(wildcard $(SHAR_SRC_DIR)/*.cpp)
 
-SHAR_BIN_LINK := $(strip $(patsubst $(SHAR_SRC_DIR)/%.c,-l%,$(SHAR_SRC)) $(patsubst $(SHAR_SRC_DIR)/%.cpp,-l%, $(SHAR_CPP_SRC)))
+SHAR_BIN_LINK := $(strip $(patsubst $(SHAR_SRC_DIR)/%.c,-l%,$(SHAR_SRC)) $(patsubst $(SHAR_SRC_DIR)/%.cpp,-l%.cpp, $(SHAR_CPP_SRC)))
 
-SHAR_BIN := $(strip $(patsubst $(SHAR_SRC_DIR)/%.c,$(BIN)/%.so,$(SHAR_SRC)) $(patsubst $(SHAR_SRC_DIR)/%.cpp,$(BIN)/%.sopp,$(SHAR_CPP_SRC)))
+SHAR_BIN := $(strip $(patsubst $(SHAR_SRC_DIR)/%.c,$(BIN)/lib%.so,$(SHAR_SRC)) $(patsubst $(SHAR_SRC_DIR)/%.cpp,$(BIN)/lib%.cpp.so,$(SHAR_CPP_SRC)))
 
 
 
@@ -71,7 +71,7 @@ start: $(SHAR_BIN) $(OBJ_FILES)
 	@$(foreach folder,$(LIBS), $(foreach file, $(wildcard $(folder)*.opp), cp $(file) $(patsubst $(folder)%.opp,$(OBJ)/%.opp,$(file));))
 	@$(foreach folder,$(LIBS), $(foreach file, $(wildcard $(folder)*.so), cp $(file) $(patsubst $(folder)%.so,$(BIN)/%.so,$(file));))
 
-	@$(FINAL_COMP) $(filter $(OBJ)/%, $^) $(RELOC_LIB_OBJ_FILES) -o $(BIN)/$(binName) -L$(BIN)/ $(SHAR_BIN_LINK) $(LIB_LINK)
+	@$(FINAL_COMP) $(filter $(OBJ)/%, $^) $(RELOC_LIB_OBJ_FILES) -o $(BIN)/$(binName) -L$(BIN)/ $(SHAR_BIN_LINK) $(LIB_LINK) $(LIBRARIES)
 
 
 # Compile normal binaries
@@ -85,11 +85,11 @@ $(OBJ)/%.opp: $(SRC)/%.cpp
 
 # Compile Shared Objects
 # Inspired by ChatGPT
-$(BIN)/%.so: $(SHAR_SRC_DIR)/%.c
+$(BIN)/lib%.so: $(SHAR_SRC_DIR)/%.c
 	@echo ---Compileing $^ as shared object file---
-	@$(CC) -I$(INCLUDES) -I$(SRC) $(SHAR_FLAGS) $(FLAGS) $(LIBRARIES) $^ -o $(patsubst $(BIN)/%.so,$(BIN)/lib%.so,$@)
+	@$(CC) -I$(INCLUDES) -I$(SRC) $(SHAR_FLAGS) $(FLAGS) $(LIBRARIES) $^ -o $@
 
-$(BIN)/%.sopp: $(SHAR_SRC_DIR)/%.cpp
+$(BIN)/lib%.cpp.so: $(SHAR_SRC_DIR)/%.cpp
 	@echo ---Compileing $^ as shared object file---
 	@$(CPPC) -I$(INCLUDES) -I$(SRC) $(SHAR_FLAGS) $(FLAGS) $(LIBRARIES) $^ -o $(patsubst $(BIN)/%.sopp,$(BIN)/lib%.so,$@)
 
